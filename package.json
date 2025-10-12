@@ -1,16 +1,42 @@
 {
-  "name": "github-actions-note",
+  "name": "github-actions-note-automation",
   "version": "1.0.0",
-  "description": "",
+  "description": "GitHub Actionsを使用したnote記事の自動執筆・投稿システム",
+  "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node test/run-tests.js",
+    "setup": "node setup/setup-credentials.js",
+    "login": "node note-automation-setup/login-note.mjs",
+    "test-login": "node note-automation-setup/test-login.mjs",
+    "research": "node jobs/research-job.js",
+    "write": "node jobs/writing-job.js",
+    "fact-check": "node jobs/fact-check-job.js",
+    "publish": "node jobs/publishing-job.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
-    "playwright": "^1.55.1"
+    "@anthropic-ai/sdk": "^0.30.1",
+    "playwright": "^1.40.0",
+    "axios": "^1.6.0",
+    "cheerio": "^1.0.0-rc.12",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.55.0",
+    "prettier": "^3.1.0"
+  },
+  "keywords": [
+    "github-actions",
+    "note",
+    "automation",
+    "ai",
+    "claude",
+    "playwright"
+  ],
+  "author": "SATOYUSUKE",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SATOYUSUKE/github-actions-note.git"
   }
 }

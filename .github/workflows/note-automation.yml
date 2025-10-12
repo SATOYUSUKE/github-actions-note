@@ -1,0 +1,563 @@
+name: Note Automation Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      theme:
+        description: '📝 記事のテーマ (例: AI技術の最新動向)'
+        required: true
+        type: string
+        default: 'AI技術の最新動向'
+      target:
+        description: '👥 想定読者 (例: エンジニア初心者)'
+        required: true
+        type: string
+        default: 'エンジニア初心者'
+      message:
+        description: '💡 伝えたい核メッセージ (例: 技術の進歩で生産性向上)'
+        required: true
+        type: string
+        default: '技術の進歩で生産性向上'
+      cta:
+        description: '🎯 読後のアクション (例: 実際に試してみる)'
+        required: true
+        type: string
+        default: '実際に試してみる'
+      tags:
+        description: '🏷️ タグ (カンマ区切り、最大5個)'
+        required: true
+        type: string
+        default: 'AI,技術,自動化'
+      writing_style:
+        description: '✍️ 記事のスタイル'
+        required: false
+        type: choice
+        default: 'informative'
+        options:
+          - 'casual'
+          - 'informative'
+          - 'technical'
+          - 'academic'
+      content_length:
+        description: '📏 記事の長さ'
+        required: false
+        type: choice
+        default: 'medium'
+        options:
+          - 'short'
+          - 'medium'
+          - 'long'
+      research_depth:
+        description: '🔍 リサーチの深度'
+        required: false
+        type: choice
+        default: 'standard'
+        options:
+          - 'basic'
+          - 'standard'
+          - 'deep'
+      fact_check_level:
+        description: '✅ ファクトチェックの厳密さ'
+        required: false
+        type: choice
+        default: 'standard'
+        options:
+          - 'basic'
+          - 'standard'
+          - 'strict'
+      is_public:
+        description: '🌐 公開設定'
+        required: true
+        type: boolean
+        default: false
+      dry_run:
+        description: '🧪 テスト実行 (実際の投稿をスキップ)'
+        required: true
+        type: boolean
+        default: true
+  schedule:
+    # 毎日午前9時に実行（オプション）
+    - cron: '0 0 * * *'
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      research-report: ${{ steps.research.outputs.report }}
+      research-progress: ${{ steps.research.outputs.research_job_progress }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Initialize Workflow Monitoring
+        run: |
+          echo "WORKFLOW_START_TIME=$(date -u +%s)" >> $GITHUB_ENV
+          echo "JOB_START_TIME=$(date -u +%s)" >> $GITHUB_ENV
+          
+          # モバイル対応の見やすいサマリー
+          echo "# 🚀 Note自動化ワークフロー開始" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| 項目 | 値 |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|-----|" >> $GITHUB_STEP_SUMMARY
+          echo "| 🆔 ワークフローID | \`${{ github.run_id }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| ⏰ 開始時刻 | $(date -u '+%Y-%m-%d %H:%M:%S UTC') |" >> $GITHUB_STEP_SUMMARY
+          echo "| 📝 テーマ | ${{ github.event.inputs.theme || 'AI技術の最新動向' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 👥 想定読者 | ${{ github.event.inputs.target || 'エンジニア初心者' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| ✍️ スタイル | ${{ github.event.inputs.writing_style || 'informative' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 📏 長さ | ${{ github.event.inputs.content_length || 'medium' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔍 リサーチ深度 | ${{ github.event.inputs.research_depth || 'standard' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🧪 テスト実行 | ${{ github.event.inputs.dry_run || 'true' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 📊 進捗状況" >> $GITHUB_STEP_SUMMARY
+          echo "- [x] ワークフロー開始" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] リサーチ実行" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] 記事執筆" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] ファクトチェック" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] 投稿処理" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Run Research Job
+        id: research
+        run: node jobs/research-job.js
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          THEME: ${{ github.event.inputs.theme || 'AI技術の最新動向' }}
+          TARGET: ${{ github.event.inputs.target || 'エンジニア初心者' }}
+          MESSAGE: ${{ github.event.inputs.message || '技術の進歩で生産性向上' }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_JOB: research
+      
+      - name: Research Job Summary
+        if: always()
+        run: |
+          JOB_END_TIME=$(date -u +%s)
+          JOB_DURATION=$((JOB_END_TIME - JOB_START_TIME))
+          
+          # モバイル対応の結果表示
+          echo "## 📊 リサーチ結果" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # ステータスバッジ
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "![Status](https://img.shields.io/badge/リサーチ-✅_完了-brightgreen)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "![Status](https://img.shields.io/badge/リサーチ-❌_失敗-red)" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # 結果テーブル
+          echo "| 📈 メトリクス | 値 |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------------|-----|" >> $GITHUB_STEP_SUMMARY
+          echo "| ⏱️ 実行時間 | ${JOB_DURATION}秒 |" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -f "outputs/research-report.json" ]; then
+            KEY_POINTS=$(jq -r '.keyPoints | length' outputs/research-report.json 2>/dev/null || echo "0")
+            SOURCES=$(jq -r '.sources | length' outputs/research-report.json 2>/dev/null || echo "0")
+            QUALITY=$(jq -r '.metadata.qualityScore * 100 | floor' outputs/research-report.json 2>/dev/null || echo "0")
+            
+            echo "| 🔑 重要ポイント | ${KEY_POINTS}個 |" >> $GITHUB_STEP_SUMMARY
+            echo "| 📚 情報源 | ${SOURCES}個 |" >> $GITHUB_STEP_SUMMARY
+            echo "| ⭐ 品質スコア | ${QUALITY}% |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # 進捗更新
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📊 全体進捗" >> $GITHUB_STEP_SUMMARY
+          echo "- [x] ワークフロー開始" >> $GITHUB_STEP_SUMMARY
+          echo "- [x] リサーチ実行" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] 記事執筆" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] ファクトチェック" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] 投稿処理" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Upload Research Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: research-report
+          path: outputs/research-report.json
+          retention-days: 1
+      
+      - name: Upload Error Reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: research-errors
+          path: outputs/errors/
+          retention-days: 7
+      
+      - name: Upload Monitoring Data
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: research-monitoring
+          path: outputs/monitoring/
+          retention-days: 3
+
+  writing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: research
+    outputs:
+      article: ${{ steps.writing.outputs.article }}
+      writing-progress: ${{ steps.writing.outputs.writing_job_progress }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Initialize Job Monitoring
+        run: |
+          echo "JOB_START_TIME=$(date -u +%s)" >> $GITHUB_ENV
+          echo "## ✍️ Writing Job Starting" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Download Research Report
+        uses: actions/download-artifact@v4
+        with:
+          name: research-report
+          path: inputs/
+      
+      - name: Download Research Monitoring
+        uses: actions/download-artifact@v4
+        with:
+          name: research-monitoring
+          path: inputs/monitoring/
+        continue-on-error: true
+      
+      - name: Run Writing Job
+        id: writing
+        run: node jobs/writing-job.js
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          THEME: ${{ github.event.inputs.theme || 'AI技術の最新動向' }}
+          TARGET: ${{ github.event.inputs.target || 'エンジニア初心者' }}
+          MESSAGE: ${{ github.event.inputs.message || '技術の進歩で生産性向上' }}
+          CTA: ${{ github.event.inputs.cta || '実際に試してみる' }}
+          TAGS: ${{ github.event.inputs.tags || 'AI,技術,自動化' }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_JOB: writing
+      
+      - name: Writing Job Summary
+        if: always()
+        run: |
+          JOB_END_TIME=$(date -u +%s)
+          JOB_DURATION=$((JOB_END_TIME - JOB_START_TIME))
+          echo "## 📝 Writing Job Results" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Duration:** ${JOB_DURATION}s" >> $GITHUB_STEP_SUMMARY
+          if [ -f "outputs/article-draft.json" ]; then
+            echo "**Title:** $(jq -r '.title' outputs/article-draft.json)" >> $GITHUB_STEP_SUMMARY
+            echo "**Word Count:** $(jq -r '.originalArticle.metadata.wordCount' outputs/article-draft.json)" >> $GITHUB_STEP_SUMMARY
+            echo "**Quality Score:** $(jq -r '.originalArticle.qualityScore * 100 | floor')%" outputs/article-draft.json >> $GITHUB_STEP_SUMMARY
+            echo "**Reading Time:** $(jq -r '.originalArticle.metadata.estimatedReadingTime')min" outputs/article-draft.json >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      - name: Upload Article Draft
+        uses: actions/upload-artifact@v4
+        with:
+          name: article-draft
+          path: outputs/article-draft.json
+          retention-days: 1
+      
+      - name: Upload Error Reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: writing-errors
+          path: outputs/errors/
+          retention-days: 7
+      
+      - name: Upload Monitoring Data
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: writing-monitoring
+          path: outputs/monitoring/
+          retention-days: 3
+
+  fact-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: writing
+    outputs:
+      verified-article: ${{ steps.fact-check.outputs.verified-article }}
+      fact-check-progress: ${{ steps.fact-check.outputs.fact_check_job_progress }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Initialize Job Monitoring
+        run: |
+          echo "JOB_START_TIME=$(date -u +%s)" >> $GITHUB_ENV
+          echo "## 🔍 Fact Check Job Starting" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Download Article Draft
+        uses: actions/download-artifact@v4
+        with:
+          name: article-draft
+          path: inputs/
+      
+      - name: Download Research Report
+        uses: actions/download-artifact@v4
+        with:
+          name: research-report
+          path: inputs/
+      
+      - name: Run Fact Check Job
+        id: fact-check
+        run: node jobs/fact-check-job.js
+        env:
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_JOB: fact-check
+      
+      - name: Fact Check Job Summary
+        if: always()
+        run: |
+          JOB_END_TIME=$(date -u +%s)
+          JOB_DURATION=$((JOB_END_TIME - JOB_START_TIME))
+          echo "## 🔍 Fact Check Job Results" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Duration:** ${JOB_DURATION}s" >> $GITHUB_STEP_SUMMARY
+          if [ -f "outputs/verified-article.json" ]; then
+            echo "**Overall Score:** $(jq -r '.factCheck.overallScore * 100 | floor')%" outputs/verified-article.json >> $GITHUB_STEP_SUMMARY
+            echo "**Claims Verified:** $(jq -r '.factCheck.claimsVerified' outputs/verified-article.json)" >> $GITHUB_STEP_SUMMARY
+            echo "**Corrections Applied:** $(jq -r '.factCheck.correctionsApplied' outputs/verified-article.json)" >> $GITHUB_STEP_SUMMARY
+            echo "**Readiness Level:** $(jq -r '.factCheck.finalValidation.readinessLevel' outputs/verified-article.json)" >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      - name: Upload Verified Article
+        uses: actions/upload-artifact@v4
+        with:
+          name: verified-article
+          path: outputs/verified-article.json
+          retention-days: 1
+      
+      - name: Upload Fact Check Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fact-check-reports
+          path: outputs/fact-check/
+          retention-days: 7
+      
+      - name: Upload Error Reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fact-check-errors
+          path: outputs/errors/
+          retention-days: 7
+      
+      - name: Upload Monitoring Data
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fact-check-monitoring
+          path: outputs/monitoring/
+          retention-days: 3
+
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    needs: fact-check
+    outputs:
+      publish-result: ${{ steps.publish.outputs.publish-result }}
+      publish-progress: ${{ steps.publish.outputs.publishing_job_progress }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Install Playwright
+        run: npx playwright install chromium
+      
+      - name: Initialize Job Monitoring
+        run: |
+          echo "JOB_START_TIME=$(date -u +%s)" >> $GITHUB_ENV
+          echo "## 📤 Publishing Job Starting" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Download Verified Article
+        uses: actions/download-artifact@v4
+        with:
+          name: verified-article
+          path: inputs/
+      
+      - name: Run Publishing Job
+        id: publish
+        run: node jobs/publishing-job.js
+        env:
+          NOTE_STORAGE_STATE_JSON: ${{ secrets.NOTE_STORAGE_STATE_JSON }}
+          IS_PUBLIC: ${{ github.event.inputs.is_public || 'false' }}
+          DRY_RUN: ${{ github.event.inputs.dry_run || 'true' }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_JOB: publish
+      
+      - name: Publishing Job Summary
+        if: always()
+        run: |
+          JOB_END_TIME=$(date -u +%s)
+          JOB_DURATION=$((JOB_END_TIME - JOB_START_TIME))
+          echo "## 📤 Publishing Job Results" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Duration:** ${JOB_DURATION}s" >> $GITHUB_STEP_SUMMARY
+          if [ -f "outputs/publishing-results.json" ]; then
+            echo "**Result:** $(jq -r '.status' outputs/publishing-results.json)" >> $GITHUB_STEP_SUMMARY
+            echo "**Success:** $(jq -r '.success' outputs/publishing-results.json)" >> $GITHUB_STEP_SUMMARY
+            if [ "$(jq -r '.noteUrl' outputs/publishing-results.json)" != "null" ]; then
+              echo "**Note URL:** $(jq -r '.noteUrl' outputs/publishing-results.json)" >> $GITHUB_STEP_SUMMARY
+            fi
+            echo "**Screenshots:** $(jq -r '.screenshots | length' outputs/publishing-results.json)" >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      - name: Upload Screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: publishing-screenshots
+          path: outputs/screenshots/
+          retention-days: 7
+      
+      - name: Upload Publishing Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: publishing-results
+          path: outputs/publishing-results.json
+          retention-days: 7
+      
+      - name: Upload Error Reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: publishing-errors
+          path: outputs/errors/
+          retention-days: 7
+      
+      - name: Upload Monitoring Data
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: publishing-monitoring
+          path: outputs/monitoring/
+          retention-days: 3
+
+  # 包括的なワークフローレポート生成
+  workflow-summary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [research, writing, fact-check, publish]
+    if: always()
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Download All Monitoring Data
+        uses: actions/download-artifact@v4
+        with:
+          pattern: "*-monitoring"
+          path: monitoring-data/
+          merge-multiple: true
+        continue-on-error: true
+      
+      - name: Download All Error Reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: "*-errors"
+          path: error-data/
+          merge-multiple: true
+        continue-on-error: true
+      
+      - name: Generate Comprehensive Report
+        run: node utils/generate-workflow-report.js
+        env:
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          WORKFLOW_START_TIME: ${{ env.WORKFLOW_START_TIME }}
+          RESEARCH_STATUS: ${{ needs.research.result }}
+          WRITING_STATUS: ${{ needs.writing.result }}
+          FACT_CHECK_STATUS: ${{ needs.fact-check.result }}
+          PUBLISH_STATUS: ${{ needs.publish.result }}
+      
+      - name: Final Workflow Summary
+        if: always()
+        run: |
+          WORKFLOW_END_TIME=$(date -u +%s)
+          TOTAL_DURATION=$((WORKFLOW_END_TIME - WORKFLOW_START_TIME))
+          echo "# 🎉 Workflow Completed" >> $GITHUB_STEP_SUMMARY
+          echo "**Total Duration:** ${TOTAL_DURATION}s" >> $GITHUB_STEP_SUMMARY
+          echo "**Research:** ${{ needs.research.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Writing:** ${{ needs.writing.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Fact Check:** ${{ needs.fact-check.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Publishing:** ${{ needs.publish.result }}" >> $GITHUB_STEP_SUMMARY
+          
+          # 成功率を計算
+          SUCCESS_COUNT=0
+          if [ "${{ needs.research.result }}" = "success" ]; then SUCCESS_COUNT=$((SUCCESS_COUNT + 1)); fi
+          if [ "${{ needs.writing.result }}" = "success" ]; then SUCCESS_COUNT=$((SUCCESS_COUNT + 1)); fi
+          if [ "${{ needs.fact-check.result }}" = "success" ]; then SUCCESS_COUNT=$((SUCCESS_COUNT + 1)); fi
+          if [ "${{ needs.publish.result }}" = "success" ]; then SUCCESS_COUNT=$((SUCCESS_COUNT + 1)); fi
+          
+          SUCCESS_RATE=$((SUCCESS_COUNT * 25))
+          echo "**Success Rate:** ${SUCCESS_RATE}%" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -f "outputs/workflow-report.json" ]; then
+            echo "**API Calls:** $(jq -r '.apiUsage.summary.totalAPICalls' outputs/workflow-report.json)" >> $GITHUB_STEP_SUMMARY
+            echo "**API Success Rate:** $(jq -r '.apiUsage.summary.overallSuccessRate')%" outputs/workflow-report.json >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      - name: Upload Comprehensive Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: workflow-comprehensive-report
+          path: outputs/workflow-report.json
+          retention-days: 30
+      
+      - name: Upload Performance Analysis
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-analysis
+          path: outputs/performance-analysis.json
+          retention-days: 30

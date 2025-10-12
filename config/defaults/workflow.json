@@ -1,0 +1,19 @@
+{
+  "timeouts": {
+    "research": 900,
+    "writing": 600,
+    "factCheck": 600,
+    "publishing": 480
+  },
+  "advanced": {
+    "researchDepth": "standard",
+    "writingStyle": "informative",
+    "contentLength": "medium",
+    "factCheckLevel": "standard"
+  },
+  "retry": {
+    "maxAttempts": 3,
+    "backoffMultiplier": 2,
+    "initialDelay": 1000
+  }
+}

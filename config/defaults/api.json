@@ -1,0 +1,15 @@
+{
+  "anthropic": {
+    "model": "claude-3-5-sonnet-20241022",
+    "maxTokens": 4000,
+    "temperature": 0.3,
+    "timeout": 300000,
+    "retryAttempts": 3,
+    "retryDelay": 1000
+  },
+  "tavily": {
+    "timeout": 30000,
+    "maxResults": 10,
+    "retryAttempts": 2
+  }
+}
