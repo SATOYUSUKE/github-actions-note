@@ -1,0 +1,47 @@
+name: Simple Test Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_message:
+        description: 'テストメッセージ'
+        required: true
+        type: string
+        default: 'Hello World'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Test basic functionality
+        run: |
+          echo "Test message: ${{ github.event.inputs.test_message }}"
+          echo "Node version: $(node --version)"
+          echo "NPM version: $(npm --version)"
+          
+      - name: Check secrets availability
+        env:
+          ANTHROPIC_KEY_SET: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+          TAVILY_KEY_SET: ${{ secrets.TAVILY_API_KEY != '' }}
+          NOTE_STATE_SET: ${{ secrets.NOTE_STORAGE_STATE_JSON != '' }}
+        run: |
+          echo "ANTHROPIC_API_KEY is set: $ANTHROPIC_KEY_SET"
+          echo "TAVILY_API_KEY is set: $TAVILY_KEY_SET"
+          echo "NOTE_STORAGE_STATE_JSON is set: $NOTE_STATE_SET"
+          
+      - name: Test package.json
+        run: |
+          if [ -f "package.json" ]; then
+            echo "package.json exists"
+            cat package.json
+          else
+            echo "package.json not found"
+          fi
