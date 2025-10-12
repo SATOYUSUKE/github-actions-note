@@ -29,42 +29,15 @@ on:
         type: string
         default: 'AI,技術,自動化'
       writing_style:
-        description: '✍️ 記事のスタイル'
+        description: '✍️ 記事のスタイル (casual/informative/technical/academic)'
         required: false
-        type: choice
+        type: string
         default: 'informative'
-        options:
-          - 'casual'
-          - 'informative'
-          - 'technical'
-          - 'academic'
       content_length:
-        description: '📏 記事の長さ'
+        description: '📏 記事の長さ (short/medium/long)'
         required: false
-        type: choice
+        type: string
         default: 'medium'
-        options:
-          - 'short'
-          - 'medium'
-          - 'long'
-      research_depth:
-        description: '🔍 リサーチの深度'
-        required: false
-        type: choice
-        default: 'standard'
-        options:
-          - 'basic'
-          - 'standard'
-          - 'deep'
-      fact_check_level:
-        description: '✅ ファクトチェックの厳密さ'
-        required: false
-        type: choice
-        default: 'standard'
-        options:
-          - 'basic'
-          - 'standard'
-          - 'strict'
       is_public:
         description: '🌐 公開設定'
         required: true
