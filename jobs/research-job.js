@@ -510,7 +510,7 @@ web_searchとweb_fetchツールを積極的に使用して、最新で正確な�
       const compactReport = ReportFormatter.formatForGitHubActions(researchReport);
 
       // GitHub Actions出力を設定
-      FileManager.setGitHubOutput("report", JSON.stringify(compactReport));
+      await FileManager.setGitHubOutput("report", JSON.stringify(compactReport));
 
       // サマリー情報をログ出力
       const summary = ReportFormatter.generateSummary(researchReport);

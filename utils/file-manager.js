@@ -93,10 +93,21 @@ export class FileManager {
   /**
    * GitHub Actions出力を設定
    */
-  static setGitHubOutput(name, value) {
+  static async setGitHubOutput(name, value) {
     if (process.env.GITHUB_OUTPUT) {
       const output = typeof value === 'string' ? value : JSON.stringify(value);
+      const outputLine = `${name}=${output}\n`;
       
+      try {
+        // GitHub Actionsの出力ファイルに追記
+        const fs = await import('fs/promises');
+        await fs.appendFile(process.env.GITHUB_OUTPUT, outputLine);
+        Logger.info(`GitHub output set: ${name}`);
+      } catch (error) {
+        Logger.warn(`Failed to set GitHub output: ${name}`, error);
+      }
+    } else {
+      Logger.debug(`GitHub output not available: ${name}`);
     }
   }
 
