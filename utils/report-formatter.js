@@ -14,9 +14,14 @@ export class ReportFormatter {
       let markdown = '';
       
       // ヘッダー
-      markdown += `# リサーチレポート: ${researchData.topic}\n\n`;
-      markdown += `**生成日時**: ${new Date(researchData.metadata.generatedAt).toLocaleString('ja-JP')}\n`;
-      markdown += `**品質スコア**: ${(researchData.metadata.qualityScore * 100).toFixed(1)}%\n\n`;
+      markdown += `# リサーチレポート: ${researchData.topic || 'Unknown Topic'}\n\n`;
+      if (researchData.metadata?.generatedAt) {
+        markdown += `**生成日時**: ${new Date(researchData.metadata.generatedAt).toLocaleString('ja-JP')}\n`;
+      }
+      if (researchData.metadata?.qualityScore) {
+        markdown += `**品質スコア**: ${(researchData.metadata.qualityScore * 100).toFixed(1)}%\n`;
+      }
+      markdown += `\n`;
       
       // 概要
       if (researchData.summary) {
@@ -82,7 +87,7 @@ export class ReportFormatter {
       }
       
       // キーワード
-      if (researchData.metadata.keywords && researchData.metadata.keywords.length > 0) {
+      if (researchData.metadata?.keywords && researchData.metadata.keywords.length > 0) {
         markdown += `## 抽出キーワード\n\n`;
         markdown += researchData.metadata.keywords.map(keyword => `\`${keyword}\``).join(', ');
         markdown += `\n\n`;
@@ -107,7 +112,7 @@ export class ReportFormatter {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>リサーチレポート: ${researchData.topic}</title>
+    <title>リサーチレポート: ${researchData.topic || 'Unknown Topic'}</title>
     <style>
         body { font-family: 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; margin: 40px; }
         .header { border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px; }
@@ -124,10 +129,10 @@ export class ReportFormatter {
 </head>
 <body>
     <div class="header">
-        <h1>リサーチレポート: ${researchData.topic}</h1>
+        <h1>リサーチレポート: ${researchData.topic || 'Unknown Topic'}</h1>
         <div class="metadata">
-            <strong>生成日時:</strong> ${new Date(researchData.metadata.generatedAt).toLocaleString('ja-JP')}<br>
-            <strong>品質スコア:</strong> <span class="quality-score">${(researchData.metadata.qualityScore * 100).toFixed(1)}%</span>
+            ${researchData.metadata?.generatedAt ? `<strong>生成日時:</strong> ${new Date(researchData.metadata.generatedAt).toLocaleString('ja-JP')}<br>` : ''}
+            ${researchData.metadata?.qualityScore ? `<strong>品質スコア:</strong> <span class="quality-score">${(researchData.metadata.qualityScore * 100).toFixed(1)}%</span>` : ''}
         </div>
     </div>
 `;

@@ -506,17 +506,31 @@ web_searchとweb_fetchツールを積極的に使用して、最新で正確な�
    */
   async saveResults(researchReport) {
     Logger.info("Saving research results...");
+    Logger.info("Research report structure:", {
+      hasTopic: !!researchReport.topic,
+      hasSummary: !!researchReport.summary,
+      hasKeyPoints: !!researchReport.keyPoints,
+      hasSources: !!researchReport.sources,
+      hasMetadata: !!researchReport.metadata
+    });
 
     try {
+      Logger.info("Step 1: Saving multiple formats...");
       // 複数フォーマットで保存
       const savedFiles = await ReportFormatter.saveMultipleFormats(researchReport);
+      Logger.info("Step 1 completed:", Object.keys(savedFiles));
 
+      Logger.info("Step 2: Formatting for GitHub Actions...");
       // GitHub Actions用のコンパクトな出力を作成
       const compactReport = ReportFormatter.formatForGitHubActions(researchReport);
+      Logger.info("Step 2 completed");
 
+      Logger.info("Step 3: Setting GitHub output...");
       // GitHub Actions出力を設定
       await FileManager.setGitHubOutput("report", JSON.stringify(compactReport));
+      Logger.info("Step 3 completed");
 
+      Logger.info("Step 4: Generating summary...");
       // サマリー情報をログ出力
       const summary = ReportFormatter.generateSummary(researchReport);
       Logger.info("Research completed:", {
@@ -525,11 +539,18 @@ web_searchとweb_fetchツールを積極的に使用して、最新で正確な�
         stats: summary.stats,
         savedFiles: Object.keys(savedFiles),
       });
+      Logger.info("Step 4 completed - All steps successful");
     } catch (error) {
       Logger.error("Failed to save research results", error);
+      Logger.error("Error details:", {
+        name: error.name,
+        message: error.message,
+        stack: error.stack?.split('\n').slice(0, 3).join('\n')
+      });
 
       // フォールバック: 最低限JSONファイルは保存
       try {
+        Logger.info("Attempting fallback save...");
         await FileManager.ensureDirectory("outputs");
         const fallbackPath = "outputs/research-report.json";
         await FileManager.writeJSON(fallbackPath, researchReport);
