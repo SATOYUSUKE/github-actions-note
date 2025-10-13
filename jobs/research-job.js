@@ -52,13 +52,13 @@ class ResearchJob {
 
       globalMonitor.updateJobProgress(jobId, 100, "completed", "Research completed successfully");
       globalMonitor.completeJob(jobId, {
-        keyPointsCount: researchReport.keyPoints.length,
-        sourcesCount: researchReport.sources.length,
+        keyPointsCount: researchReport.keyPoints?.length || 0,
+        sourcesCount: researchReport.sources?.length || 0,
       });
 
       Logger.jobComplete(this.jobName, {
-        keyPointsCount: researchReport.keyPoints.length,
-        sourcesCount: researchReport.sources.length,
+        keyPointsCount: researchReport.keyPoints?.length || 0,
+        sourcesCount: researchReport.sources?.length || 0,
       });
     } catch (error) {
       const jobError = this.createJobError(error);
