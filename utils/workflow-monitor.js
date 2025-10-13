@@ -96,7 +96,7 @@ export class WorkflowMonitor {
   /**
    * ジョブ進捗を更新
    */
-  updateJobProgress(jobId, progress, stage = null, message = null) {
+  async updateJobProgress(jobId, progress, stage = null, message = null) {
     const job = this.jobs.get(jobId);
     if (!job) {
       Logger.warn(`Job not found for progress update: ${jobId}`);
@@ -115,13 +115,13 @@ export class WorkflowMonitor {
     });
 
     // GitHub Actions出力を更新
-    this.updateGitHubActionsProgress(job);
+    await this.updateGitHubActionsProgress(job);
   }
 
   /**
    * ジョブを完了
    */
-  completeJob(jobId, outputs = {}, error = null) {
+  async completeJob(jobId, outputs = {}, error = null) {
     const job = this.jobs.get(jobId);
     if (!job) {
       Logger.warn(`Job not found for completion: ${jobId}`);
@@ -151,7 +151,7 @@ export class WorkflowMonitor {
     });
 
     // 最終的なGitHub Actions出力を更新
-    this.updateGitHubActionsProgress(job);
+    await this.updateGitHubActionsProgress(job);
   }
 
   /**
@@ -605,7 +605,7 @@ export class WorkflowMonitor {
   /**
    * GitHub Actions進捗出力を更新
    */
-  updateGitHubActionsProgress(job) {
+  async updateGitHubActionsProgress(job) {
     try {
       const progressData = {
         jobName: job.name,
@@ -618,7 +618,7 @@ export class WorkflowMonitor {
       };
 
       // GitHub Actions出力を設定
-      FileManager.setGitHubOutput(`${job.name.toLowerCase().replace(/\s+/g, '_')}_progress`, JSON.stringify(progressData));
+      await FileManager.setGitHubOutput(`${job.name.toLowerCase().replace(/\s+/g, '_')}_progress`, JSON.stringify(progressData));
       
     } catch (error) {
       Logger.warn('Failed to update GitHub Actions progress', error);

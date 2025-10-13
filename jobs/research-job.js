@@ -31,27 +31,27 @@ class ResearchJob {
 
     try {
       Logger.jobStart(this.jobName);
-      globalMonitor.updateJobProgress(jobId, 5, "initializing", "Starting research job...");
+      await globalMonitor.updateJobProgress(jobId, 5, "initializing", "Starting research job...");
 
       // 環境変数の検証
-      globalMonitor.updateJobProgress(jobId, 10, "validating", "Validating environment...");
+      await globalMonitor.updateJobProgress(jobId, 10, "validating", "Validating environment...");
       await this.validateEnvironment();
 
       // 入力パラメータの取得
-      globalMonitor.updateJobProgress(jobId, 15, "loading_inputs", "Loading input parameters...");
+      await globalMonitor.updateJobProgress(jobId, 15, "loading_inputs", "Loading input parameters...");
       const inputs = this.getInputs();
       Logger.info("Research inputs:", inputs);
 
       // リサーチの実行
-      globalMonitor.updateJobProgress(jobId, 20, "researching", "Conducting research...");
+      await globalMonitor.updateJobProgress(jobId, 20, "researching", "Conducting research...");
       const researchReport = await this.conductResearchWithErrorHandling(inputs, jobId);
 
       // 結果の保存
-      globalMonitor.updateJobProgress(jobId, 90, "saving", "Saving research results...");
+      await globalMonitor.updateJobProgress(jobId, 90, "saving", "Saving research results...");
       await this.saveResults(researchReport);
 
-      globalMonitor.updateJobProgress(jobId, 100, "completed", "Research completed successfully");
-      globalMonitor.completeJob(jobId, {
+      await globalMonitor.updateJobProgress(jobId, 100, "completed", "Research completed successfully");
+      await globalMonitor.completeJob(jobId, {
         keyPointsCount: researchReport.keyPoints?.length || 0,
         sourcesCount: researchReport.sources?.length || 0,
       });
@@ -62,7 +62,7 @@ class ResearchJob {
       });
     } catch (error) {
       const jobError = this.createJobError(error);
-      globalMonitor.completeJob(jobId, null, jobError);
+      await globalMonitor.completeJob(jobId, null, jobError);
 
       try {
         await this.errorHandler.handleJobError(jobError, {
@@ -203,7 +203,7 @@ class ResearchJob {
   async conductResearchWithErrorHandling(inputs, jobId) {
     return await this.errorHandler.handleJobError(await this.attemptResearch(inputs, jobId), {
       retryFunction: async (retryCount) => {
-        globalMonitor.updateJobProgress(jobId, 20 + retryCount * 10, "retrying", `Retrying research (attempt ${retryCount + 1})...`);
+        await globalMonitor.updateJobProgress(jobId, 20 + retryCount * 10, "retrying", `Retrying research (attempt ${retryCount + 1})...`);
         return await this.attemptResearch(inputs, jobId);
       },
     });
@@ -215,11 +215,11 @@ class ResearchJob {
   async attemptResearch(inputs, jobId) {
     try {
       Logger.info("Starting research with Anthropic SDK...");
-      globalMonitor.updateJobProgress(jobId, 25, "preparing", "Preparing research prompt...");
+      await globalMonitor.updateJobProgress(jobId, 25, "preparing", "Preparing research prompt...");
 
       const researchPrompt = this.buildResearchPrompt(inputs);
 
-      globalMonitor.updateJobProgress(jobId, 30, "api_call", "Calling Anthropic API...");
+      await globalMonitor.updateJobProgress(jobId, 30, "api_call", "Calling Anthropic API...");
       const startTime = Date.now();
 
       // 設定から API パラメータを取得
@@ -246,13 +246,13 @@ class ResearchJob {
       const responseTime = Date.now() - startTime;
       globalMonitor.trackAPICall("anthropic", "messages.create", responseTime, true);
 
-      globalMonitor.updateJobProgress(jobId, 70, "parsing", "Parsing research response...");
+      await globalMonitor.updateJobProgress(jobId, 70, "parsing", "Parsing research response...");
 
       // レスポンスからリサーチレポートを抽出
       const result = this.parseResearchResponse(response, inputs);
       Logger.info("Research completed successfully");
 
-      globalMonitor.updateJobProgress(jobId, 85, "analyzing", "Analyzing research quality...");
+      await globalMonitor.updateJobProgress(jobId, 85, "analyzing", "Analyzing research quality...");
 
       return result;
     } catch (error) {
