@@ -162,6 +162,10 @@ class ResearchJob {
       errorType = ErrorTypes.TIMEOUT_ERROR;
       retryable = true;
       severity = ErrorSeverity.MEDIUM;
+    } else if (error.message?.includes("Failed to save") || error.message?.includes("writeJSON")) {
+      errorType = ErrorTypes.FILE_ERROR;
+      retryable = true;
+      severity = ErrorSeverity.MEDIUM;
     } else if (error.status) {
       errorType = ErrorTypes.API_ERROR;
       retryable = error.status >= 500;
@@ -171,10 +175,11 @@ class ResearchJob {
     return new JobError(
       this.jobName,
       errorType,
-      error.message || "Unknown error occurred",
+      error.message || `Unknown error occurred: ${error.constructor.name}`,
       {
         originalError: error,
         stack: error.stack,
+        errorName: error.constructor.name,
       },
       retryable,
       severity,
@@ -524,9 +529,15 @@ web_searchとweb_fetchツールを積極的に使用して、最新で正確な�
       Logger.error("Failed to save research results", error);
 
       // フォールバック: 最低限JSONファイルは保存
-      await FileManager.ensureDirectory("outputs");
-      const fallbackPath = "outputs/research-report.json";
-      await FileManager.writeJSON(fallbackPath, researchReport);
+      try {
+        await FileManager.ensureDirectory("outputs");
+        const fallbackPath = "outputs/research-report.json";
+        await FileManager.writeJSON(fallbackPath, researchReport);
+        Logger.info("Fallback save successful");
+      } catch (fallbackError) {
+        Logger.error("Fallback save also failed", fallbackError);
+        throw new Error(`Failed to save research results: ${error.message}. Fallback also failed: ${fallbackError.message}`);
+      }
 
       throw error;
     }
