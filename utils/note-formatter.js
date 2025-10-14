@@ -140,7 +140,7 @@ export class NoteFormatter {
     
     // 見出しの前後の空行を確保
     content = content.replace(/([^\n])\n(#{2,3} )/g, '$1\n\n$2');
-    content = content.replace /(#{2,3} .+)\n([^\n])/g, '$1\n\n$2');
+    content = content.replace(/(#{2,3} .+)\n([^\n])/g, '$1\n\n$2');
     
     // リストの前後の空行
     content = content.replace(/([^\n])\n([-*+] )/g, '$1\n\n$2');
