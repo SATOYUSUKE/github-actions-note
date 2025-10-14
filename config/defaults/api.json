@@ -2,14 +2,28 @@
   "anthropic": {
     "model": "claude-3-5-sonnet-20241022",
     "maxTokens": 4000,
-    "temperature": 0.3,
-    "timeout": 300000,
+    "temperature": 0.7,
+    "timeout": 60000,
     "retryAttempts": 3,
     "retryDelay": 1000
   },
   "tavily": {
+    "searchDepth": "advanced",
+    "includeAnswer": true,
+    "includeRawContent": false,
+    "maxResults": 5,
     "timeout": 30000,
-    "maxResults": 10,
-    "retryAttempts": 2
+    "retryAttempts": 2,
+    "retryDelay": 2000
+  },
+  "rateLimits": {
+    "anthropic": {
+      "requestsPerMinute": 50,
+      "tokensPerMinute": 40000
+    },
+    "tavily": {
+      "requestsPerMinute": 100,
+      "requestsPerDay": 1000
+    }
   }
 }

@@ -1,19 +1,124 @@
 {
-  "timeouts": {
-    "research": 900,
-    "writing": 600,
-    "factCheck": 600,
-    "publishing": 480
+  "version": "1.0.0",
+  "name": "Note Automation Workflow",
+  "description": "Automated article research, writing, fact-checking, and publishing",
+  "parameters": {
+    "theme": {
+      "type": "string",
+      "default": "AI技術の最新動向",
+      "description": "記事のテーマ",
+      "required": true,
+      "maxLength": 100
+    },
+    "target": {
+      "type": "string",
+      "default": "エンジニア初心者",
+      "description": "想定読者",
+      "required": true,
+      "maxLength": 50
+    },
+    "message": {
+      "type": "string",
+      "default": "技術の進歩で生産性向上",
+      "description": "伝えたい核メッセージ",
+      "required": true,
+      "maxLength": 200
+    },
+    "cta": {
+      "type": "string",
+      "default": "実際に試してみる",
+      "description": "読後のアクション",
+      "required": true,
+      "maxLength": 50
+    },
+    "tags": {
+      "type": "array",
+      "default": [
+        "AI",
+        "技術",
+        "自動化"
+      ],
+      "description": "記事タグ",
+      "required": true,
+      "maxItems": 5,
+      "itemType": "string",
+      "itemMaxLength": 20
+    },
+    "isPublic": {
+      "type": "boolean",
+      "default": false,
+      "description": "公開設定（true: 公開, false: 下書き）",
+      "required": true
+    },
+    "dryRun": {
+      "type": "boolean",
+      "default": true,
+      "description": "テスト実行（true: 投稿スキップ, false: 実際に投稿）",
+      "required": true
+    }
   },
   "advanced": {
-    "researchDepth": "standard",
-    "writingStyle": "informative",
-    "contentLength": "medium",
-    "factCheckLevel": "standard"
+    "researchDepth": {
+      "type": "enum",
+      "default": "standard",
+      "options": [
+        "basic",
+        "standard",
+        "deep"
+      ],
+      "description": "リサーチの深度"
+    },
+    "writingStyle": {
+      "type": "enum",
+      "default": "informative",
+      "options": [
+        "casual",
+        "informative",
+        "technical",
+        "academic"
+      ],
+      "description": "記事の文体"
+    },
+    "factCheckLevel": {
+      "type": "enum",
+      "default": "standard",
+      "options": [
+        "basic",
+        "standard",
+        "strict"
+      ],
+      "description": "ファクトチェックの厳密さ"
+    },
+    "contentLength": {
+      "type": "enum",
+      "default": "medium",
+      "options": [
+        "short",
+        "medium",
+        "long"
+      ],
+      "description": "記事の長さ"
+    }
   },
-  "retry": {
-    "maxAttempts": 3,
-    "backoffMultiplier": 2,
-    "initialDelay": 1000
+  "quality": {
+    "minQualityScore": {
+      "type": "number",
+      "default": 0.7,
+      "min": 0,
+      "max": 1,
+      "description": "最低品質スコア"
+    },
+    "minFactCheckScore": {
+      "type": "number",
+      "default": 0.6,
+      "min": 0,
+      "max": 1,
+      "description": "最低ファクトチェックスコア"
+    },
+    "requireManualReview": {
+      "type": "boolean",
+      "default": false,
+      "description": "手動レビューを必須とする"
+    }
   }
 }

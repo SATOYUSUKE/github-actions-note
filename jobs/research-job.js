@@ -172,12 +172,36 @@ class ResearchJob {
       severity = error.status >= 500 ? ErrorSeverity.MEDIUM : ErrorSeverity.HIGH;
     }
 
+    // エラーメッセージの適切な処理
+    let errorMessage = error.message;
+    if (!errorMessage) {
+      try {
+        errorMessage = `Unknown error occurred: ${error.constructor.name}`;
+        // オブジェクトの場合は安全に文字列化
+        if (typeof error === 'object') {
+          const safeError = {};
+          Object.getOwnPropertyNames(error).forEach(key => {
+            try {
+              if (typeof error[key] !== 'function') {
+                safeError[key] = error[key];
+              }
+            } catch (e) {
+              // プロパティアクセスエラーを無視
+            }
+          });
+          errorMessage = `Unknown error occurred: ${JSON.stringify(safeError)}`;
+        }
+      } catch (e) {
+        errorMessage = "Unknown error occurred: Could not stringify error";
+      }
+    }
+
     return new JobError(
       this.jobName,
       errorType,
-      error.message || `Unknown error occurred: ${error.constructor.name}`,
+      errorMessage,
       {
-        originalError: error,
+        originalError: typeof error === 'object' ? JSON.stringify(Object.getOwnPropertyNames(error)) : String(error),
         stack: error.stack,
         errorName: error.constructor.name,
       },
@@ -201,18 +225,24 @@ class ResearchJob {
    * エラーハンドリング付きリサーチ実行
    */
   async conductResearchWithErrorHandling(inputs, jobId) {
-    return await this.errorHandler.handleJobError(await this.attemptResearch(inputs, jobId), {
-      retryFunction: async (retryCount) => {
-        await globalMonitor.updateJobProgress(jobId, 20 + retryCount * 10, "retrying", `Retrying research (attempt ${retryCount + 1})...`);
-        return await this.attemptResearch(inputs, jobId);
-      },
-    });
+    try {
+      return await this.attemptResearch(inputs, jobId);
+    } catch (error) {
+      const jobError = error instanceof JobError ? error : this.createJobError(error);
+      return await this.errorHandler.handleJobError(jobError, {
+        retryFunction: async (retryCount) => {
+          await globalMonitor.updateJobProgress(jobId, 20 + retryCount * 10, "retrying", `Retrying research (attempt ${retryCount + 1})...`);
+          return await this.attemptResearch(inputs, jobId);
+        },
+      });
+    }
   }
 
   /**
    * リサーチを試行
    */
   async attemptResearch(inputs, jobId) {
+    let apiCallStart = null;
     try {
       Logger.info("Starting research with Anthropic SDK...");
       await globalMonitor.updateJobProgress(jobId, 25, "preparing", "Preparing research prompt...");
@@ -220,7 +250,7 @@ class ResearchJob {
       const researchPrompt = this.buildResearchPrompt(inputs);
 
       await globalMonitor.updateJobProgress(jobId, 30, "api_call", "Calling Anthropic API...");
-      const startTime = Date.now();
+      apiCallStart = Date.now();
 
       // 設定から API パラメータを取得
       const apiConfig = this.config?.api?.anthropic || {};
@@ -243,7 +273,7 @@ class ResearchJob {
         new Promise((_, reject) => setTimeout(() => reject(new Error(`API call timed out after ${timeoutMs}ms`)), timeoutMs)),
       ]);
 
-      const responseTime = Date.now() - startTime;
+      const responseTime = Date.now() - apiCallStart;
       globalMonitor.trackAPICall("anthropic", "messages.create", responseTime, true);
 
       await globalMonitor.updateJobProgress(jobId, 70, "parsing", "Parsing research response...");
@@ -256,7 +286,7 @@ class ResearchJob {
 
       return result;
     } catch (error) {
-      const responseTime = Date.now() - startTime;
+      const responseTime = apiCallStart ? Date.now() - apiCallStart : 0;
       globalMonitor.trackAPICall("anthropic", "messages.create", responseTime, false, { error: error.message });
 
       // Anthropic固有のエラーハンドリング

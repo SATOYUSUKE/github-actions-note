@@ -154,18 +154,24 @@ class WritingJob {
    * エラーハンドリング付き記事生成
    */
   async generateArticleWithErrorHandling(inputs, jobId) {
-    return await this.errorHandler.handleJobError(await this.attemptArticleGeneration(inputs, jobId), {
-      retryFunction: async (retryCount) => {
-        globalMonitor.updateJobProgress(jobId, 25 + retryCount * 10, "retrying", `Retrying article generation (attempt ${retryCount + 1})...`);
-        return await this.attemptArticleGeneration(inputs, jobId);
-      },
-    });
+    try {
+      return await this.attemptArticleGeneration(inputs, jobId);
+    } catch (error) {
+      const jobError = error instanceof JobError ? error : this.createJobError(error);
+      return await this.errorHandler.handleJobError(jobError, {
+        retryFunction: async (retryCount) => {
+          globalMonitor.updateJobProgress(jobId, 25 + retryCount * 10, "retrying", `Retrying article generation (attempt ${retryCount + 1})...`);
+          return await this.attemptArticleGeneration(inputs, jobId);
+        },
+      });
+    }
   }
 
   /**
    * 記事生成を試行
    */
   async attemptArticleGeneration(inputs, jobId) {
+    let apiCallStart = null;
     try {
       Logger.info("Starting article generation with Claude Sonnet 4.5...");
       globalMonitor.updateJobProgress(jobId, 30, "preparing", "Preparing article prompt...");
@@ -173,7 +179,7 @@ class WritingJob {
       const articlePrompt = this.buildArticlePrompt(inputs);
 
       globalMonitor.updateJobProgress(jobId, 35, "api_call", "Calling Anthropic API...");
-      const startTime = Date.now();
+      apiCallStart = Date.now();
 
       // タイムアウト付きでAPI呼び出し
       const timeoutMs = 300000; // 5分のタイムアウト
@@ -193,7 +199,7 @@ class WritingJob {
         new Promise((_, reject) => setTimeout(() => reject(new Error(`API call timed out after ${timeoutMs}ms`)), timeoutMs)),
       ]);
 
-      const responseTime = Date.now() - startTime;
+      const responseTime = Date.now() - apiCallStart;
       globalMonitor.trackAPICall("anthropic", "messages.create", responseTime, true);
 
       globalMonitor.updateJobProgress(jobId, 60, "parsing", "Parsing article response...");
@@ -203,7 +209,7 @@ class WritingJob {
       Logger.info("Article generated successfully");
       return article;
     } catch (error) {
-      const responseTime = Date.now() - startTime;
+      const responseTime = apiCallStart ? Date.now() - apiCallStart : 0;
       globalMonitor.trackAPICall("anthropic", "messages.create", responseTime, false, { error: error.message });
 
       // Anthropic固有のエラーハンドリング
