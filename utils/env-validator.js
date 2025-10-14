@@ -68,6 +68,14 @@ export class EnvValidator {
   }
 
   /**
+   * 互換メソッド: NOTE_STORAGE_STATE の検証
+   * Publishing Job からの呼び出しに対応するためのエイリアス
+   */
+  static validateNoteStorageState() {
+    return this.validateNoteCredentials();
+  }
+
+  /**
    * GitHub Actions環境を検証
    */
   static validateGitHubEnvironment() {
