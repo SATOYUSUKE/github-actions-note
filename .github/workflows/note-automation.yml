@@ -59,6 +59,7 @@ jobs:
     outputs:
       research-report: ${{ steps.research.outputs.report }}
       research-progress: ${{ steps.research.outputs.research_job_progress }}
+      monitoring-present: ${{ steps.monitoring.outputs.present }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -166,13 +167,23 @@ jobs:
           path: outputs/errors/
           retention-days: 7
       
+      - name: Check Monitoring Files
+        id: monitoring
+        run: |
+          if [ -d "outputs/monitoring" ] && [ -n "$(find outputs/monitoring -type f -print -quit 2>/dev/null)" ]; then
+            echo "present=true" >> $GITHUB_OUTPUT
+          else
+            echo "present=false" >> $GITHUB_OUTPUT
+          fi
+      
       - name: Upload Monitoring Data
-        if: always()
+        if: ${{ steps.monitoring.outputs.present == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: research-monitoring
           path: outputs/monitoring/
           retention-days: 3
+          if-no-files-found: ignore
 
   writing:
     runs-on: ubuntu-latest
@@ -206,11 +217,11 @@ jobs:
           path: inputs/
       
       - name: Download Research Monitoring
+        if: ${{ needs.research.outputs.monitoring-present == 'true' }}
         uses: actions/download-artifact@v4
         with:
           name: research-monitoring
           path: inputs/monitoring/
-        continue-on-error: true
       
       - name: Run Writing Job
         id: writing
@@ -256,12 +267,13 @@ jobs:
           retention-days: 7
       
       - name: Upload Monitoring Data
-        if: always()
+        if: ${{ hashFiles('outputs/monitoring/**') != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: writing-monitoring
           path: outputs/monitoring/
           retention-days: 3
+          if-no-files-found: ignore
 
   fact-check:
     runs-on: ubuntu-latest
@@ -347,12 +359,13 @@ jobs:
           retention-days: 7
       
       - name: Upload Monitoring Data
-        if: always()
+        if: ${{ hashFiles('outputs/monitoring/**') != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: fact-check-monitoring
           path: outputs/monitoring/
           retention-days: 3
+          if-no-files-found: ignore
 
   publish:
     runs-on: ubuntu-latest
@@ -416,12 +429,13 @@ jobs:
           fi
       
       - name: Upload Screenshots
-        if: always()
+        if: ${{ hashFiles('outputs/screenshots/**') != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: publishing-screenshots
           path: outputs/screenshots/
           retention-days: 7
+          if-no-files-found: ignore
       
       - name: Upload Publishing Results
         if: always()
@@ -440,12 +454,13 @@ jobs:
           retention-days: 7
       
       - name: Upload Monitoring Data
-        if: always()
+        if: ${{ hashFiles('outputs/monitoring/**') != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: publishing-monitoring
           path: outputs/monitoring/
           retention-days: 3
+          if-no-files-found: ignore
 
   # 包括的なワークフローレポート生成
   workflow-summary:
