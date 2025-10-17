@@ -141,9 +141,9 @@ note-automation-system/
 ### 必要な環境変数
 ```bash
 # GitHub Secretsに設定が必要
-ANTHROPIC_API_KEY=sk-ant-...     # Claude API用
-TAVILY_API_KEY=tvly-...          # ファクトチェック用
-NOTE_STORAGE_STATE_JSON={...}    # note.comログイン状態
+ANTHROPIC_API_KEY=your_anthropic_api_key_here     # Claude API用
+TAVILY_API_KEY=your_tavily_api_key_here          # ファクトチェック用
+NOTE_STORAGE_STATE_JSON=your_note_storage_state_json_here    # note.comログイン状態
 ```
 
 ## 学んだこと

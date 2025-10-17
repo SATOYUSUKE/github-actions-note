@@ -133,7 +133,7 @@ Error: 401 Unauthorized - Invalid API key
 **解決方法:**
 1. **APIキーの確認**
 ```bash
-# APIキーの形式確認 (sk-ant-で始まる)
+# APIキーの形式確認 (適切なAPIキー形式)
 echo $ANTHROPIC_API_KEY | head -c 10
 ```
 

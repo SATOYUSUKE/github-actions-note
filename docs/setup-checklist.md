@@ -18,13 +18,13 @@
 ### 1. Anthropic API Key
 - [ ] [Anthropic Console](https://console.anthropic.com/) にアクセス
 - [ ] アカウント作成/ログイン
-- [ ] API Keyを生成（`sk-ant-` で始まる）
+- [ ] API Keyを生成（APIキーの文字列）
 - [ ] キーをメモ帳に保存
 
 ### 2. Tavily API Key
 - [ ] [Tavily](https://tavily.com/) にアクセス
 - [ ] 無料アカウント作成
-- [ ] API Keyを生成（`tvly-` で始まる）
+- [ ] API Keyを生成（APIキーの文字列）
 - [ ] キーをメモ帳に保存
 
 ## 🎭 note.com認証情報取得
@@ -98,11 +98,11 @@ const STATE_PATH = './note-state.json';
 
 #### 1. ANTHROPIC_API_KEY
 - [ ] Name: `ANTHROPIC_API_KEY`
-- [ ] Secret: 取得したAnthropicのAPIキー（`sk-ant-...`）
+- [ ] Secret: 取得したAnthropicのAPIキー（`your_anthropic_api_key_here`）
 
 #### 2. TAVILY_API_KEY
 - [ ] Name: `TAVILY_API_KEY`
-- [ ] Secret: 取得したTavilyのAPIキー（`tvly-...`）
+- [ ] Secret: 取得したTavilyのAPIキー（`your_tavily_api_key_here`）
 
 #### 3. NOTE_STORAGE_STATE_JSON
 - [ ] Name: `NOTE_STORAGE_STATE_JSON`
@@ -143,7 +143,7 @@ const STATE_PATH = './note-state.json';
 #### 2. API認証エラー
 - **症状**: `Invalid API key` エラー
 - **解決策**:
-  - [ ] APIキーの形式を確認（`sk-ant-`, `tvly-`で始まる）
+  - [ ] APIキーの形式を確認（適切なAPIキー形式で始まる）
   - [ ] GitHub Secretsの設定を再確認
   - [ ] APIキーの有効期限を確認
 

@@ -58,7 +58,7 @@ const anthropicConfig = {
 1. **APIキーの管理**
 ```bash
 # 環境変数での設定（ローカル開発用）
-export ANTHROPIC_API_KEY="sk-ant-your-key-here"
+export ANTHROPIC_API_KEY="your_anthropic_api_key_here"
 
 # GitHub Secretsでの設定（本番用）
 # Settings → Secrets → ANTHROPIC_API_KEY
@@ -167,8 +167,8 @@ class TavilyUsageTracker {
 
 | Secret名 | 形式 | 例 |
 |----------|------|-----|
-| `ANTHROPIC_API_KEY` | sk-ant-... | sk-ant-api03-xxx |
-| `TAVILY_API_KEY` | tvly-... | tvly-xxx |
+| `ANTHROPIC_API_KEY` | your_anthropic_api_key_here | your_anthropic_api_key_here |
+| `TAVILY_API_KEY` | your_tavily_api_key_here | your_tavily_api_key_here |
 | `NOTE_STORAGE_STATE` | JSON | {"cookies":[...]} |
 
 ### Secretsのベストプラクティス
@@ -378,7 +378,7 @@ class AlertSystem {
 // 解決: APIキーの確認と再生成
 if (error.status === 401) {
   console.error('API authentication failed. Please check your API key.');
-  console.error('Key format should be: sk-ant-... (Anthropic) or tvly-... (Tavily)');
+  console.error('Key format should be: your_anthropic_api_key_here (Anthropic) or your_tavily_api_key_here (Tavily)');
 }
 ```
 

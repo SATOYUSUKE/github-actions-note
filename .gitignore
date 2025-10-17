@@ -1,5 +1,48 @@
 # 機密情報
 note-state.json
+*.env
+*.env.*
+!.env.sample
+.env.local
+.env.production
+.env.staging
+.env.development
+
+# 認証情報
+**/credentials.json
+**/auth.json
+**/secrets.json
+**/config/production.json
+**/config/staging.json
+
+# ログファイル
+*.log
+logs/
+debug.log
+error.log
+
+# 一時ファイル
+*.tmp
+*.temp
+.cache/
+.temp/
+
+# OS固有
+.DS_Store
+Thumbs.db
 
 # Node.js
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# エディタ
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# テスト関連
+coverage/
+.nyc_output/

@@ -51,7 +51,7 @@ npx playwright install chromium
 1. [Anthropic Console](https://console.anthropic.com/)にアクセス
 2. アカウント作成またはログイン
 3. 「API Keys」セクションで新しいキーを作成
-4. キーをコピーして保存（`sk-ant-`で始まる文字列）
+4. キーをコピーして保存（APIキーの文字列）
 
 **料金について:**
 - Claude Sonnet 4.5: 入力$3/1M tokens, 出力$15/1M tokens
@@ -62,7 +62,7 @@ npx playwright install chromium
 1. [Tavily API](https://tavily.com/)にアクセス
 2. アカウント作成
 3. ダッシュボードでAPIキーを取得
-4. キーをコピーして保存（`tvly-`で始まる文字列）
+4. キーをコピーして保存（APIキーの文字列）
 
 **料金について:**
 - 無料プラン: 月1,000リクエスト
@@ -113,8 +113,8 @@ export CHROME_PATH="/usr/bin/google-chrome"  # Linux
 
 | Secret名 | 値 | 説明 |
 |---------|-----|------|
-| `ANTHROPIC_API_KEY` | `sk-ant-...` | Claude API キー |
-| `TAVILY_API_KEY` | `tvly-...` | Tavily API キー |
+| `ANTHROPIC_API_KEY` | `your_anthropic_api_key_here` | Claude API キー |
+| `TAVILY_API_KEY` | `your_tavily_api_key_here` | Tavily API キー |
 | `NOTE_STORAGE_STATE` | `note-state.json`の内容 | note.com認証情報 |
 
 3. **NOTE_STORAGE_STATEの設定方法**
