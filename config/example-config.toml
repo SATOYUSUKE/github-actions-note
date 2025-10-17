@@ -1,0 +1,29 @@
+##########
+# Codex CLI サンプル設定 (config/example-config.toml)
+# ~/.codex/config.toml にコピーして使用してください。
+##########
+
+# 利用モデルと推論強度
+model = "gpt-5-codex"
+model_reasoning_effort = "high"
+
+# 推論ログ表示を抑制
+hide_agent_reasoning = true
+
+# ネットワークアクセスを許可
+network_access = true
+
+# タスク完了時に通知を鳴らす (macOS の例)
+notify = ["bash", "-lc", "afplay /System/Library/Sounds/Ping.aiff"]
+
+[tools]
+# Web検索ツールを有効化
+web_search = true
+
+[mcp_servers.context7]
+command = "npx"
+args = ["-y", "@upstash/context7-mcp@latest"]
+
+[mcp_servers.figma]
+command = "npx"
+args = ["-y", "mcp-remote", "http://127.0.0.1:3845/sse"]

@@ -1,0 +1,19 @@
+{
+  "name": "Writing User Prompt",
+  "version": "1.0.0",
+  "description": "User prompt template for writing job",
+  "variables": [
+    "theme",
+    "target",
+    "message",
+    "cta",
+    "tags",
+    "writing_style",
+    "content_length",
+    "research_summary",
+    "key_points",
+    "trends",
+    "statistics"
+  ],
+  "template": "以下の情報を基に、魅力的で実用的な記事を執筆してください:\n\n## 基本情報\n- テーマ: {{theme}}\n- 想定読者: {{target}}\n- 伝えたいメッセージ: {{message}}\n- 読後のアクション: {{cta}}\n- 推奨タグ: {{tags}}\n- 記事スタイル: {{writing_style}}\n- 記事の長さ: {{content_length}}\n\n## リサーチ結果\n\n### 概要\n{{research_summary}}\n\n### 重要ポイント\n{{key_points}}\n\n### トレンド情報\n{{trends}}\n\n### 統計データ\n{{statistics}}\n\n## 執筆要件\n1. 想定読者（{{target}}）に適した内容レベル\n2. 「{{message}}」というメッセージを効果的に伝える\n3. 読者が「{{cta}}」したくなる構成\n4. リサーチ結果を根拠として活用\n5. {{content_length}}の記事として構成\n6. note.comで人気が出そうな魅力的なタイトル\n7. 実践的で具体的な内容\n\nリサーチ結果を効果的に活用し、読者にとって価値のある記事を作成してください。"
+}

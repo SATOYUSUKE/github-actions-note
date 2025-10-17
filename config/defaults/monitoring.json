@@ -1,0 +1,20 @@
+{
+  "enabled": true,
+  "logLevel": "info",
+  "metricsCollection": {
+    "performance": true,
+    "apiUsage": true,
+    "errors": true,
+    "quality": true
+  },
+  "alerts": {
+    "errorThreshold": 5,
+    "performanceThreshold": 300000,
+    "quotaThreshold": 0.8
+  },
+  "reporting": {
+    "generateReports": true,
+    "reportInterval": "daily",
+    "includeRecommendations": true
+  }
+}

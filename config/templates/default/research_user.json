@@ -1,0 +1,12 @@
+{
+  "name": "Research User Prompt",
+  "version": "1.0.0",
+  "description": "User prompt template for research job",
+  "variables": [
+    "theme",
+    "target",
+    "message",
+    "research_depth"
+  ],
+  "template": "以下のテーマについて{{research_depth}}なリサーチを行ってください:\n\nテーマ: {{theme}}\n想定読者: {{target}}\n伝えたいメッセージ: {{message}}\n\nリサーチ要件:\n1. テーマに関する最新情報と動向を調査\n2. 想定読者に適した情報レベルで収集\n3. 伝えたいメッセージを裏付ける事実やデータを重点的に調査\n4. 信頼できる情報源から最低5つ以上の参考資料を収集\n5. 統計データや専門家の意見を含める\n\nweb_searchとweb_fetchツールを積極的に使用して、最新で正確な情報を収集してください。\n最終的に、構造化されたJSONレポートとして出力してください。"
+}

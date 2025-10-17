@@ -46,3 +46,22 @@ yarn-error.log*
 # テスト関連
 coverage/
 .nyc_output/
+
+# GitHub Actions アーティファクト（一時的な生成ファイル）
+article-draft/
+fact-check-reports/
+performance-analysis/
+publishing-results/
+verified-article/
+workflow-comprehensive-report/
+research-report/
+
+# 出力ファイル（実行時生成）
+outputs/research-report.*
+outputs/research-summary.json
+outputs/errors/
+outputs/article-draft.json
+
+# 重複する一時ファイル
+outputs/*.html
+outputs/*.md
