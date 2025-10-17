@@ -158,6 +158,17 @@ jobs:
           name: research-report
           path: outputs/research-report.json
           retention-days: 1
+        id: upload_research_report
+      
+      - name: Verify Research Report Upload
+        run: |
+          if [ "${{ steps.upload_research_report.outcome }}" = "success" ]; then
+            echo "✅ Research report uploaded successfully"
+            echo "Artifact ID: ${{ steps.upload_research_report.outputs.artifact-id }}"
+          else
+            echo "❌ Research report upload failed"
+            exit 1
+          fi
       
       - name: Upload Error Reports
         if: failure()
@@ -170,11 +181,24 @@ jobs:
       - name: Check Monitoring Files
         id: monitoring
         run: |
-          if [ -d "outputs/monitoring" ] && [ -n "$(find outputs/monitoring -type f -print -quit 2>/dev/null)" ]; then
-            echo "present=true" >> $GITHUB_OUTPUT
+          echo "🔍 Checking for monitoring files..."
+          if [ -d "outputs/monitoring" ]; then
+            echo "📁 outputs/monitoring directory exists"
+            file_count=$(find outputs/monitoring -type f 2>/dev/null | wc -l)
+            echo "📊 Found $file_count files in outputs/monitoring"
+            if [ "$file_count" -gt 0 ]; then
+              echo "present=true" >> $GITHUB_OUTPUT
+              echo "✅ Monitoring files found in outputs/monitoring"
+              ls -la outputs/monitoring/
+            else
+              echo "present=false" >> $GITHUB_OUTPUT
+              echo "ℹ️ outputs/monitoring directory exists but is empty"
+            fi
           else
             echo "present=false" >> $GITHUB_OUTPUT
+            echo "ℹ️ outputs/monitoring directory does not exist"
           fi
+          echo "🏷️ monitoring-present output set to: $(cat $GITHUB_OUTPUT | grep present= | cut -d= -f2)"
       
       - name: Upload Monitoring Data
         if: ${{ steps.monitoring.outputs.present == 'true' }}
@@ -184,6 +208,16 @@ jobs:
           path: outputs/monitoring/
           retention-days: 3
           if-no-files-found: ignore
+        id: upload_monitoring
+      
+      - name: Verify Monitoring Upload
+        if: ${{ steps.monitoring.outputs.present == 'true' }}
+        run: |
+          if [ "${{ steps.upload_monitoring.outcome }}" = "success" ]; then
+            echo "✅ Research monitoring uploaded successfully"
+          else
+            echo "⚠️ Research monitoring upload failed or skipped"
+          fi
 
   writing:
     runs-on: ubuntu-latest
@@ -210,11 +244,44 @@ jobs:
           echo "JOB_START_TIME=$(date -u +%s)" >> $GITHUB_ENV
           echo "## ✍️ Writing Job Starting" >> $GITHUB_STEP_SUMMARY
       
+      - name: Debug Research Job Outputs
+        run: |
+          echo "🔍 Research Job Output Values:"
+          echo "  research-report: ${{ needs.research.outputs.research-report }}"
+          echo "  research-progress: ${{ needs.research.outputs.research-progress }}"
+          echo "  monitoring-present: ${{ needs.research.outputs.monitoring-present }}"
+          echo "  research job result: ${{ needs.research.result }}"
+      
       - name: Download Research Report
         uses: actions/download-artifact@v4
         with:
           name: research-report
           path: inputs/
+        continue-on-error: true
+        id: download_research
+      
+      - name: Retry Download Research Report
+        if: steps.download_research.outcome == 'failure'
+        uses: actions/download-artifact@v4
+        with:
+          name: research-report
+          path: inputs/
+        continue-on-error: true
+        id: retry_download_research
+      
+      - name: Verify Research Report
+        run: |
+          if [ ! -f "inputs/research-report.json" ]; then
+            echo "❌ Research report not found after download attempts"
+            echo "Available files in inputs/:"
+            ls -la inputs/ || echo "inputs/ directory not found"
+            echo "Checking if research job completed successfully..."
+            echo "Research job status: ${{ needs.research.result }}"
+            exit 1
+          else
+            echo "✅ Research report successfully downloaded"
+            echo "File size: $(stat -c%s inputs/research-report.json) bytes"
+          fi
       
       - name: Download Research Monitoring
         if: ${{ needs.research.outputs.monitoring-present == 'true' }}
@@ -222,6 +289,28 @@ jobs:
         with:
           name: research-monitoring
           path: inputs/monitoring/
+        continue-on-error: true
+        id: download_monitoring
+      
+      - name: Verify Monitoring Download
+        run: |
+          echo "🔍 Monitoring Download Status:"
+          echo "  monitoring-present: ${{ needs.research.outputs.monitoring-present }}"
+          echo "  download step condition met: ${{ needs.research.outputs.monitoring-present == 'true' }}"
+          
+          if [ "${{ needs.research.outputs.monitoring-present }}" = "true" ]; then
+            if [ "${{ steps.download_monitoring.outcome }}" = "failure" ]; then
+              echo "⚠️ Research monitoring artifact not found, but was expected"
+              echo "This might be due to a timing issue or the monitoring files were not actually uploaded"
+              echo "Continuing without monitoring data..."
+            elif [ "${{ steps.download_monitoring.outcome }}" = "success" ]; then
+              echo "✅ Research monitoring data downloaded successfully"
+            else
+              echo "ℹ️ Monitoring download step was skipped (outcome: ${{ steps.download_monitoring.outcome }})"
+            fi
+          else
+            echo "ℹ️ Monitoring download skipped - monitoring-present is false"
+          fi
       
       - name: Run Writing Job
         id: writing
