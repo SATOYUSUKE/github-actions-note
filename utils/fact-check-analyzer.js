@@ -18,7 +18,10 @@ export class FactCheckAnalyzer {
       
       // 2. 時系列的主張の抽出
       const temporalClaims = this.extractTemporalClaims(content);
-      claims.push(...temporalClaims);
+      
+      // 2.1. 時間的主張の検証（古い年の検出）
+      const validatedTemporalClaims = this.validateTemporalClaims(temporalClaims);
+      claims.push(...validatedTemporalClaims);
       
       // 3. 因果関係の主張の抽出
       const causalClaims = this.extractCausalClaims(content);
@@ -119,6 +122,46 @@ export class FactCheckAnalyzer {
     });
     
     return claims;
+  }
+
+  /**
+   * 時間的主張の検証
+   */
+  static validateTemporalClaims(claims) {
+    const currentYear = new Date().getFullYear();
+    const validatedClaims = [];
+    
+    claims.forEach(claim => {
+      if (claim.type === 'temporal_year' && claim.extractedData?.year) {
+        const mentionedYear = parseInt(claim.extractedData.year);
+        const yearDifference = currentYear - mentionedYear;
+        
+        // 2年以上古い年を検出
+        if (yearDifference >= 2) {
+          validatedClaims.push({
+            ...claim,
+            isOutdated: true,
+            yearDifference: yearDifference,
+            suggestedCorrection: claim.text.replace(
+              new RegExp(`${mentionedYear}年`, 'g'), 
+              `${currentYear}年`
+            ),
+            validationMessage: `${mentionedYear}年は${yearDifference}年前の情報です。${currentYear}年の最新情報に更新することを推奨します。`
+          });
+        } else {
+          validatedClaims.push({
+            ...claim,
+            isOutdated: false,
+            yearDifference: yearDifference
+          });
+        }
+      } else {
+        validatedClaims.push(claim);
+      }
+    });
+    
+    Logger.info(`Validated ${validatedClaims.length} temporal claims, found ${validatedClaims.filter(c => c.isOutdated).length} outdated claims`);
+    return validatedClaims;
   }
 
   /**

@@ -305,10 +305,13 @@ class ResearchJob {
     } catch (error) {
       Logger.warn("Failed to get custom system prompt, using default", error);
       // フォールバック: デフォルトプロンプト
+      const currentYear = new Date().getFullYear();
       return `あなたは優秀なリサーチャーです。与えられたテーマについて、web_searchとweb_fetchツールを使用して包括的なリサーチを行い、構造化されたレポートを作成してください。
 
+重要: 現在は${currentYear}年です。リサーチ時は必ず最新の情報として${currentYear}年のデータを優先的に収集してください。
+
 リサーチの手順:
-1. まず、テーマに関連する複数の検索クエリを実行
+1. まず、テーマに関連する複数の検索クエリを実行（"${currentYear}年"を含めて最新情報を検索）
 2. 信頼できる情報源から詳細な情報を収集
 3. 最新のトレンドや統計データを調査
 4. 専門家の意見や事例を収集
@@ -377,6 +380,7 @@ class ResearchJob {
     } catch (error) {
       Logger.warn("Failed to get custom user prompt, using default", error);
       // フォールバック: デフォルトプロンプト
+      const currentYear = new Date().getFullYear();
       return `以下のテーマについて包括的なリサーチを行ってください:
 
 テーマ: ${inputs.theme}
@@ -384,11 +388,13 @@ class ResearchJob {
 伝えたいメッセージ: ${inputs.message}
 
 リサーチ要件:
-1. テーマに関する最新情報と動向を調査
+1. テーマに関する最新情報と動向を調査（${currentYear}年の最新データを優先）
 2. 想定読者に適した情報レベルで収集
 3. 伝えたいメッセージを裏付ける事実やデータを重点的に調査
 4. 信頼できる情報源から最低5つ以上の参考資料を収集
 5. 統計データや専門家の意見を含める
+
+検索時は「${inputs.theme} ${currentYear}年」「${inputs.theme} 最新動向 ${currentYear}」などのクエリを使用して、最新の情報を優先的に収集してください。
 
 web_searchとweb_fetchツールを積極的に使用して、最新で正確な情報を収集してください。
 最終的に、構造化されたJSONレポートとして出力してください。`;
@@ -594,6 +600,9 @@ web_searchとweb_fetchツールを積極的に使用して、最新で正確な�
     }
   }
 }
+
+// エクスポート
+export { ResearchJob };
 
 // メイン実行
 if (import.meta.url === `file://${process.argv[1]}`) {

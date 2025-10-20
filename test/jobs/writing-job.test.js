@@ -12,9 +12,29 @@ class MockWritingJob {
     this.jobName = 'Writing Job';
   }
 
+  // Test system prompt generation
+  getSystemPrompt() {
+    const currentYear = new Date().getFullYear();
+    return `あなたは優秀なライターです。リサーチレポートを基に、読者にとって価値のある記事を執筆してください。
+
+重要: 現在は${currentYear}年です。記事内で年を言及する際は、必ず最新の情報として${currentYear}年を使用してください。
+
+記事執筆の要件:
+1. note.comに適したMarkdown形式で執筆
+2. 読者の知識レベルに合わせた内容
+3. 具体例や事例を豊富に含める
+4. 実践的で行動につながる内容
+5. SEOを意識したタイトルと構成
+6. 適切な見出し構造（H2, H3を使用）
+7. 読みやすい段落分け
+8. 時間的な情報は${currentYear}年基準で記述する
+
+出力形式:
+必ず以下のJSON形式で回答してください:`;
+  }
+
   // Test article response parsing logic
   parseArticleResponse(response, inputs) {
-    try {
       let content = '';
       for (const block of response.content) {
         if (block.type === 'text') {
