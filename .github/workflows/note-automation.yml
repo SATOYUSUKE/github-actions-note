@@ -246,11 +246,11 @@ jobs:
       
       - name: Debug Research Job Outputs
         run: |
-          echo "Research Job Output Values:"
-          echo "  research-report: ${{ needs.research.outputs.research-report }}"
-          echo "  research-progress: ${{ needs.research.outputs.research-progress }}"
-          echo "  monitoring-present: ${{ needs.research.outputs.monitoring-present }}"
-          echo "  research job result: ${{ needs.research.result }}"
+          echo 'Research Job Output Values:'
+          echo '  research-report: ${{ needs.research.outputs.research-report }}'
+          echo '  research-progress: ${{ needs.research.outputs.research-progress }}'
+          echo '  monitoring-present: ${{ needs.research.outputs.monitoring-present }}'
+          echo '  research job result: ${{ needs.research.result }}'
       
       - name: Download Research Report
         uses: actions/download-artifact@v4
