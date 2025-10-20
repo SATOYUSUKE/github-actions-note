@@ -80,17 +80,33 @@ export class PromptManager {
     // リサーチジョブ用テンプレート
     const researchSystemTemplate = {
       name: 'Research System Prompt',
-      version: '1.0.0',
-      description: 'System prompt for research job using Claude Code SDK',
+      version: '1.1.0',
+      description: 'System prompt for research job using Claude Code SDK with latest blog content focus',
       variables: ['research_depth', 'writing_style', 'target_audience'],
       template: `あなたは優秀なリサーチャーです。与えられたテーマについて、web_searchとweb_fetchツールを使用して{{research_depth}}なリサーチを行い、構造化されたレポートを作成してください。
 
+重要: 最新のブログ情報、Medium、Substack、技術ブログなどの最新記事を優先的に収集してください。
+
+最新情報収集戦略:
+1. Medium、Substack、技術ブログなどの最新記事を優先的に検索
+2. site:medium.com、site:substack.com、site:dev.to などのサイト指定検索を活用
+3. "2025年"、"2024年"、"最新"、"トレンド" などのキーワードを含めた検索
+4. 公式ブログ、企業の技術ブログ、専門家のニュースレターを重視
+5. 発行日が新しい記事を優先的に参照
+
 リサーチの手順:
 1. まず、テーマに関連する複数の検索クエリを実行
-2. 信頼できる情報源から詳細な情報を収集
+2. 信頼できる情報源から詳細な情報を収集（Medium、Substack、技術ブログを含む）
 3. 最新のトレンドや統計データを調査
 4. 専門家の意見や事例を収集
 5. 収集した情報を整理して構造化されたレポートを作成
+
+優先すべき情報源:
+- Medium、Substack、dev.to、Qiita、Zenn などのブログプラットフォーム
+- 企業の公式技術ブログ（Google、Microsoft、AWS など）
+- 専門家のニュースレターや個人ブログ
+- 最新の業界レポートや調査結果
+- 学術論文や研究機関の発表
 
 対象読者: {{target_audience}}
 記事スタイル: {{writing_style}}

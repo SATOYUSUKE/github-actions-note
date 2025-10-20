@@ -60,13 +60,19 @@ export class WebAnalyzer {
         'medium.com', 'dev.to', 'techcrunch.com',
         'wired.com', 'arstechnica.com', 'ieee.org',
         'acm.org', 'nature.com', 'science.org',
-        'mit.edu', 'stanford.edu', 'harvard.edu'
+        'mit.edu', 'stanford.edu', 'harvard.edu',
+        'substack.com'
       ];
       
       // 中信頼性ドメイン
       const mediumCredibilityDomains = [
         'qiita.com', 'zenn.dev', 'note.com',
-        'blog.', 'tech.', 'engineering.'
+        'blog.', 'tech.', 'engineering.',
+        'hashnode.com', 'dev.hashnode.com',
+        'hackernoon.com', 'freecodecamp.org',
+        'towards.ai', 'towardsdatascience.com',
+        'blog.google', 'blog.microsoft.com',
+        'aws.amazon.com/blogs', 'cloud.google.com/blog'
       ];
       
       // 低信頼性ドメイン
@@ -255,16 +261,30 @@ export class WebAnalyzer {
     // メッセージ関連クエリ
     queries.push(`${theme} ${message}`);
     
-    // 最新情報クエリ
-    queries.push(`${theme} 2024 最新`);
-    queries.push(`${theme} トレンド`);
+    // 最新情報クエリ（2025年対応）
+    queries.push(`${theme} 2025 最新`);
+    queries.push(`${theme} 2024 トレンド`);
+    
+    // プラットフォーム特化クエリ
+    queries.push(`site:medium.com ${theme} 2024`);
+    queries.push(`site:substack.com ${theme}`);
+    queries.push(`${theme} blog 最新記事`);
+    
+    // 技術ブログ・専門サイト特化クエリ
+    queries.push(`site:dev.to ${theme}`);
+    queries.push(`site:qiita.com ${theme}`);
+    queries.push(`site:zenn.dev ${theme}`);
     
     // 統計・データクエリ
-    queries.push(`${theme} 統計 データ`);
+    queries.push(`${theme} 統計 データ 2024`);
     
     // 事例・ケーススタディクエリ
-    queries.push(`${theme} 事例 成功例`);
+    queries.push(`${theme} 事例 成功例 最新`);
     
-    return queries.slice(0, 5); // 最大5つのクエリ
+    // 専門家の意見・分析クエリ
+    queries.push(`${theme} 専門家 分析 2024`);
+    queries.push(`${theme} 業界動向 レポート`);
+    
+    return queries.slice(0, 8); // 最大8つのクエリに拡張
   }
 }
