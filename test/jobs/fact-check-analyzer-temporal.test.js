@@ -9,14 +9,20 @@ describe('FactCheckAnalyzer Temporal Validation Tests', () => {
     
     const temporalClaims = [
       {
-        claim: `${outdatedYear}年のデータによると、AI市場は成長しています`,
-        type: 'temporal',
-        confidence: 0.8
+        text: `${outdatedYear}年のデータによると、AI市場は成長しています`,
+        type: 'temporal_year',
+        confidence: 0.8,
+        extractedData: {
+          year: outdatedYear.toString()
+        }
       },
       {
-        claim: `${currentYear}年の最新調査では、技術が進歩しています`,
-        type: 'temporal',
-        confidence: 0.9
+        text: `${currentYear}年の最新調査では、技術が進歩しています`,
+        type: 'temporal_year',
+        confidence: 0.9,
+        extractedData: {
+          year: currentYear.toString()
+        }
       }
     ];
     
@@ -24,7 +30,7 @@ describe('FactCheckAnalyzer Temporal Validation Tests', () => {
     
     // 古い年のクレームが検出されることを確認
     const outdatedClaim = validatedClaims.find(claim => 
-      claim.claim.includes(outdatedYear.toString())
+      claim.text.includes(outdatedYear.toString())
     );
     
     assert(outdatedClaim, 'Should find outdated claim');
@@ -35,22 +41,25 @@ describe('FactCheckAnalyzer Temporal Validation Tests', () => {
     
     // 現在年のクレームは問題ないことを確認
     const currentClaim = validatedClaims.find(claim => 
-      claim.claim.includes(currentYear.toString())
+      claim.text.includes(currentYear.toString())
     );
     
     assert(currentClaim, 'Should find current year claim');
     assert(!currentClaim.isOutdated, 'Current year claim should not be outdated');
   });
 
-  test('validateTemporalClaims handles recent years correctly', () => {
+  test('validateTemporalClaims handles recent years', () => {
     const currentYear = new Date().getFullYear();
-    const lastYear = currentYear - 1;
+    const recentYear = currentYear - 1;
     
     const temporalClaims = [
       {
-        claim: `${lastYear}年のレポートでは、市場が拡大しています`,
-        type: 'temporal',
-        confidence: 0.8
+        text: `${recentYear}年の研究結果によると、効果が確認されています`,
+        type: 'temporal_year',
+        confidence: 0.7,
+        extractedData: {
+          year: recentYear.toString()
+        }
       }
     ];
     
@@ -59,7 +68,7 @@ describe('FactCheckAnalyzer Temporal Validation Tests', () => {
     
     // 1年前のデータは古いとマークされないことを確認
     assert(!recentClaim.isOutdated, 'Last year claim should not be marked as outdated');
-    assert(!recentClaim.yearDifference, 'Year difference should not be set for recent years');
+    assert(recentClaim.yearDifference === 1, 'Year difference should be calculated for recent years too');
   });
 
   test('validateTemporalClaims handles multiple year patterns', () => {
@@ -68,9 +77,12 @@ describe('FactCheckAnalyzer Temporal Validation Tests', () => {
     
     const temporalClaims = [
       {
-        claim: `${veryOldYear}年から${currentYear}年にかけて、技術は進歩しました`,
-        type: 'temporal',
-        confidence: 0.7
+        text: `${veryOldYear}年から${currentYear}年にかけて、技術は進歩しました`,
+        type: 'temporal_year',
+        confidence: 0.7,
+        extractedData: {
+          year: veryOldYear.toString()
+        }
       }
     ];
     
@@ -85,7 +97,7 @@ describe('FactCheckAnalyzer Temporal Validation Tests', () => {
   test('validateTemporalClaims handles non-temporal claims', () => {
     const nonTemporalClaims = [
       {
-        claim: 'AIは人工知能の略称です',
+        text: 'AIは人工知能の略称です',
         type: 'factual',
         confidence: 0.9
       }
@@ -94,9 +106,10 @@ describe('FactCheckAnalyzer Temporal Validation Tests', () => {
     const validatedClaims = FactCheckAnalyzer.validateTemporalClaims(nonTemporalClaims);
     const nonTemporalClaim = validatedClaims[0];
     
-    // 時間的でないクレームは変更されないことを確認
-    assert(!nonTemporalClaim.isOutdated, 'Non-temporal claim should not be marked as outdated');
-    assert(!nonTemporalClaim.yearDifference, 'Non-temporal claim should not have year difference');
+    // 非時間的クレームは変更されないことを確認
+    assert(!nonTemporalClaim.isOutdated, 'Non-temporal claims should not be marked as outdated');
+    assert(!nonTemporalClaim.yearDifference, 'Non-temporal claims should not have year difference');
+    assert(!nonTemporalClaim.suggestedCorrection, 'Non-temporal claims should not have corrections');
   });
 
   test('extractAdvancedClaims integration with validateTemporalClaims', () => {
@@ -109,12 +122,12 @@ describe('FactCheckAnalyzer Temporal Validation Tests', () => {
     const claims = FactCheckAnalyzer.extractAdvancedClaims(content);
     
     // 時間的クレームが抽出され、検証されていることを確認
-    const temporalClaims = claims.filter(claim => claim.type === 'temporal');
+    const temporalClaims = claims.filter(claim => claim.type === 'temporal_year');
     assert(temporalClaims.length > 0, 'Should extract temporal claims');
     
     // 古い年のクレームが適切に検証されていることを確認
     const outdatedClaim = temporalClaims.find(claim => 
-      claim.claim.includes(oldYear.toString()) && claim.isOutdated
+      claim.text.includes(oldYear.toString()) && claim.isOutdated
     );
     
     assert(outdatedClaim, 'Should find and validate outdated temporal claim');
