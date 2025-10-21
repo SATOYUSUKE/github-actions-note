@@ -99,6 +99,11 @@ npm run format
 - Assume the user is intelligent and tech-savvy but may not know details.
 - Explain everything clearly, simply, in easy-to-understand language.
 
+## GLOBAL CONFIGURATION
+- You can write global instructions in `~/.codex/AGENTS.md` and they will be read automatically
+- Example: Writing "Think in English, output in Japanese" in the global config will affect all responses
+- Note: This may cause code comments to also be written in Japanese
+
 ## RESTRICTIONS
 - NEVER push to GitHub unless the User explicitly tells you to.
 - DO NOT run 'npm run build' unless the User tells you to.
